@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Configs">
+      <UniqueIdentifier>{a0e818b1-49b3-4634-92fd-42e4d3a02867}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Configs\TextList">
+      <UniqueIdentifier>{fad9b011-f198-41d4-9ee2-4cdf0f1a55f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CyclicBuffer">
+      <UniqueIdentifier>{40e32c5c-6d21-417f-8b37-c15385cee59a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="VectorMatrix">
+      <UniqueIdentifier>{06bf2e01-d75e-4eb7-99dd-236d827b1cc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libraries">
+      <UniqueIdentifier>{de848e26-75f6-4e83-8a52-65fa2eb3a0be}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Configs\TextList\TextLine.cpp">
+      <Filter>Configs\TextList</Filter>
+    </ClCompile>
+    <ClCompile Include="Configs\TextList\TextList.cpp">
+      <Filter>Configs\TextList</Filter>
+    </ClCompile>
+    <ClCompile Include="Configs\ConfigFileReader.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="Configs\ConfigFileWriter.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="Configs\ConfigStruct.cpp">
+      <Filter>Configs</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Libraries\CLibrary.cpp">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="Libraries\ExtLibrary.cpp">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="Libraries\FlexLibrary.cpp">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+    <ClCompile Include="Libraries\SecondFileInfo.cpp">
+      <Filter>Libraries</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Configs\TextList\TextLine.h">
+      <Filter>Configs\TextList</Filter>
+    </ClInclude>
+    <ClInclude Include="Configs\TextList\TextList.h">
+      <Filter>Configs\TextList</Filter>
+    </ClInclude>
+    <ClInclude Include="Configs\ConfigFileReader.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="Configs\ConfigFileWriter.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="Configs\ConfigStruct.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="Configs\ExampleOfConfigFile.h">
+      <Filter>Configs</Filter>
+    </ClInclude>
+    <ClInclude Include="CyclicBuffer\CyclicBuffer1D.h">
+      <Filter>CyclicBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="CyclicBuffer\CyclicBuffer2D.h">
+      <Filter>CyclicBuffer</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\CLibrary.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\ExtLibrary.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\FlexLibrary.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\SecondFileInfo.h">
+      <Filter>Libraries</Filter>
+    </ClInclude>
+    <ClInclude Include="FunctionTemplates.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorMatrix\LargeDataMatrix.h">
+      <Filter>VectorMatrix</Filter>
+    </ClInclude>
+    <ClInclude Include="VectorMatrix\LargeDataVector.h">
+      <Filter>VectorMatrix</Filter>
+    </ClInclude>
+    <ClInclude Include="Stopwatch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
