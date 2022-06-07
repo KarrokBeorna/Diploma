@@ -110,7 +110,7 @@ CProcessRegister::CProcessRegister(CConfigFileReader* Config)
 			delete Serv;
 			Serv = NULL;
 		}
-		Serv->Status = 0; // Computations are paused at the beginning until a client message resumes them
+		Serv->PublicParams.Status = 0; // Computations are paused at the beginning until a client message resumes them
 	}
 
 	Ready = true;
@@ -179,6 +179,8 @@ void CProcessRegister::Execute()
 // Processes current time frame
 void CProcessRegister::ProcessCurrFrame()
 {
+	if (IsRealtimePlayback) InsertPlaybackDelay();
+
 	const float PowerCutoffThreshold = NoisePower * NOISE_ENERGY_MULTIPLIER_THRESHOLD;
 	float f;
 	for (unsigned int s = 0; s < N_Targets; s++)
@@ -227,6 +229,9 @@ void CProcessRegister::ProcessCurrFrame()
 
 		MainBuffer->SetAggregatedScore(c, CurrFrameID, f);
 	}
+	// TODO: Instead this artificial delay, arrange cyclic bufferization of the computed data vector
+	std::this_thread::sleep_for(std::chrono::milliseconds(1)); // this doessn't help
+
 }
 
 
@@ -522,6 +527,7 @@ void CProcessRegister::Init()
 	N_TimeFrames = 0;
 	FrameSize = 0;
 	N_Targets = 0;
+	IsRealtimePlayback = false;
 	NoisePower = 1.0f;
 	TimeFrameInSeconds = 0.0f;
 	ChannelWidthInMeters = 0.0f;
@@ -567,6 +573,8 @@ float CProcessRegister::ComputeAmplitudeAttenuation(float DistanceInMeters)
 void CProcessRegister::StartComputations()
 {
 	CurrFrameID = 0;
+	if (IsRealtimePlayback) PlaybackTimer.StartLap();
+
 	if (Serv == NULL)
 	{
 		printf("\nStart processing");
@@ -578,24 +586,34 @@ void CProcessRegister::StartComputations()
 	}
 	else
 	{
-		while (Serv->Status == 0)
+		Serv->PublicParams.pDataToSend = DataVector;
+		Serv->PublicParams.N_TotalElementsToSend = 0;
+
+		while (Serv->PublicParams.Status == 0)
 		{
 			std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		}
+
 		for (unsigned long t = 0; t < N_TimeFrames; t++)
 		{
+			unsigned int Mode = Serv->PublicParams.Mode;
 			ProcessCurrFrame();
-			Serv->CurrProcessedFrameID = t;
-			unsigned int Mode = Serv->Mode;
+			IncTimeFrame();
+
 			switch (Mode)
 			{
 			case 1:
 			{
-				CLargeDataVector<float>* pData = GetCurrentSpatialDistribution();
-				Serv->N_TotalElementsToSend = N_Channels;
-				Serv->pDataToSend = pData->GetInternalData();
+				Serv->PublicParams.N_TotalElementsToSend = N_Channels;
+				CLargeDataMatrix<float>* Map = MainBuffer->GetMapOfScores();
+				float* pDataVector = Map->GetColumn(t)->GetInternalData();
+				// memcpy(DataVector, pDataVector, sizeof(float) * N_Channels);
+				// for (unsigned int i = 0; i < N_Channels; i++) DataVector[i] = pDataVector[i];
+				// Serv->PublicParams.pDataToSend = DataVector;
+				Serv->PublicParams.pDataToSend = pDataVector;
+				printf("\nData updated (%d)", t);
 			}
-				break;
+			break;
 
 			case 2:
 			{
@@ -606,25 +624,19 @@ void CProcessRegister::StartComputations()
 				{
 					DataVector[r * N_COLS_TABLE_OF_VISIBLE_TARGETS + c] = TableOfVisibleTargets->GetValue(r, c);
 				}
-				Serv->N_TotalElementsToSend = N_Elements;
-				Serv->pDataToSend = DataVector;
-
-				/*
-				if (N_VisibleTargets > 0)
-				{
-					printf("\nTable of visible targets:");
-					TableOfVisibleTargets->PrintData(N_VisibleTargets);
-				}
-				*/
+				Serv->PublicParams.N_TotalElementsToSend = N_Elements;
+				Serv->PublicParams.pDataToSend = DataVector;
 			}
-				break;
+			break;
 			} // switch
-			
-			IncTimeFrame();
 
-			if (Serv->Status == 0) break;
+			Serv->PublicParams.CurrProcessedFrameID = CurrFrameID;
+			Serv->PublicParams.cv_FrameID.notify_one();
+
+
+			if (Serv->PublicParams.Status == 0) break;
 		}
-		Serv->CurrProcessedFrameID = N_TimeFrames;
+		Serv->PublicParams.CurrProcessedFrameID = N_TimeFrames;
 	}
 	printf("\nEnd processing");
 }
@@ -773,6 +785,13 @@ bool CProcessRegister::Init_ScenarioGlobalParams(CConfigFileReader* pConfig, con
 		EnablePhaseCorrection = b;
 	}
 
+	b = pConfig->ReadLong(SectionName, "bool_EnableRealtimePlayback", &a);
+	if (b)
+	{
+		b = (a != 0);
+		IsRealtimePlayback = b;
+	}
+
 	PhaseProc = new CPhaseProc(FrameSize);
 	if (!PhaseProc->IsReady())
 	{
@@ -792,10 +811,59 @@ bool CProcessRegister::Init_ScenarioGlobalParams(CConfigFileReader* pConfig, con
 
 	b = MainBuffer->ReadFile_WithNoise(name);
 	if (!b) return false;
-
 	
-
 	return true;
 }
 
 
+
+
+// Delays computations for real-time playback
+void CProcessRegister::InsertPlaybackDelay()
+{
+	PlaybackTimer.StopLap();
+	float timeTaken = PlaybackTimer.GetLapWallClockSeconds();
+	if (timeTaken < TimeFrameInSeconds)
+	{
+		unsigned microsecondsPerFrame = static_cast<unsigned>(TimeFrameInSeconds * 1000000);
+		unsigned sleepTimeRemaining = microsecondsPerFrame - static_cast<unsigned long>(timeTaken * 1000000);
+		unsigned currentSleepTime;
+		int sleepResult = 0;
+
+		do
+		{
+			if (sleepTimeRemaining < 1000000)
+			{
+				currentSleepTime = sleepTimeRemaining;
+				sleepTimeRemaining = 0;
+			}
+			else
+			{
+				currentSleepTime = 999999;
+				sleepTimeRemaining -= 999999;
+			}
+
+			// sleepResult = usleep(currentSleepTime);
+			std::this_thread::sleep_for(std::chrono::microseconds(currentSleepTime));
+			
+
+		} // while ((sleepTimeRemaining > 0) && (sleepResult == 0));
+		while (sleepTimeRemaining > 0);
+
+		PlaybackTimer.StopLap();
+	}
+	PlaybackTimer.StartLap();
+
+	/*
+	ProcessingTimer.StopLap();
+	float timeTaken = ProcessingTimer.GetLapWallClockSeconds();
+	if (timeTaken < TimeFrameInSeconds)
+	{
+		unsigned int microsecondsPerFrame = static_cast<unsigned>(TimeFrameInSeconds * 1000000);
+		std::chrono::microseconds(microsecondsPerFrame - static_cast<unsigned long>(timeTaken * 1000000));
+		// usleep(microsecondsPerFrame - static_cast<unsigned long>(timeTaken * 1000000));
+		ProcessingTimer.StopLap();
+	}
+	PlaybackTimer.StartLap();
+	*/
+}
