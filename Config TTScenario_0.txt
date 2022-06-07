@@ -11,11 +11,12 @@ int_MaxSizeDataPacketInBytes=1344
 //-------------------------------------------------------------------------
                 Section ScenarioGlobalParams
 //-------------------------------------------------------------------------
-N_Channels=100
-N_TimeFrames=100
+N_Channels=1000
+N_TimeFrames=120
 N_FrameSize=1024
 bool_EnablePhaseDistortions=1
 bool_EnablePhaseCorrection=0
+bool_EnableRealtimePlayback=1
 
 int_PulseRepetitionRateInHertz=1000
 float_NoisePower=0.1
@@ -86,7 +87,228 @@ SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_0.txt"
 int_TargetClass=1
 float_InitPosX=-300.519
 float_InitPosY=6.0
-float_InitVelocityX=3.3
+float_InitVelocityX=5.3
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[5]
+//-------------------------------------------------------------------------
+int_TargetClass=1
+float_InitPosX=-400.519
+float_InitPosY=6.0
+float_InitVelocityX=5.9
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[6]
+//-------------------------------------------------------------------------
+int_TargetClass=2
+float_InitPosX=-350.519
+float_InitPosY=6.0
+float_InitVelocityX=5.7
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[7]
+//-------------------------------------------------------------------------
+int_TargetClass=2
+float_InitPosX=300.519
+float_InitPosY=6.0
+float_InitVelocityX=-4.9
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[8]
+//-------------------------------------------------------------------------
+int_TargetClass=2
+float_InitPosX=-500.519
+float_InitPosY=6.0
+float_InitVelocityX=6.1
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[9]
+//-------------------------------------------------------------------------
+int_TargetClass=3
+float_InitPosX=500.519
+float_InitPosY=6.0
+float_InitVelocityX=-6.5
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[10]
+//-------------------------------------------------------------------------
+int_TargetClass=3
+float_InitPosX=200.519
+float_InitPosY=6.0
+float_InitVelocityX=-5.5
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[11]
+//-------------------------------------------------------------------------
+int_TargetClass=3
+float_InitPosX=100.519
+float_InitPosY=6.0
+float_InitVelocityX=-4.7
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[12]
+//-------------------------------------------------------------------------
+int_TargetClass=4
+float_InitPosX=-50.519
+float_InitPosY=6.0
+float_InitVelocityX=7.0
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[13]
+//-------------------------------------------------------------------------
+int_TargetClass=4
+float_InitPosX=-600.519
+float_InitPosY=6.0
+float_InitVelocityX=5.1
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[14]
+//-------------------------------------------------------------------------
+int_TargetClass=4
+float_InitPosX=400.519
+float_InitPosY=6.0
+float_InitVelocityX=-4.8
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[15]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=150.519
+float_InitPosY=6.0
+float_InitVelocityX=-5.6
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[16]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=-300.519
+float_InitPosY=6.0
+float_InitVelocityX=6.3
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[17]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=500.519
+float_InitPosY=6.0
+float_InitVelocityX=-6.4
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[18]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=4500
+float_InitPosY=6.0
+float_InitVelocityX=-6.4
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[19]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=3000
+float_InitPosY=6.0
+float_InitVelocityX=-6.4
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[20]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=2000
+float_InitPosY=6.0
+float_InitVelocityX=-6.4
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
+
+
+
+
+//-------------------------------------------------------------------------
+                Section TargetParams[21]
+//-------------------------------------------------------------------------
+int_TargetClass=5
+float_InitPosX=1000
+float_InitPosY=6.0
+float_InitVelocityX=-6.4
 float_InitTargetSignalPower=1.0
 SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_1.txt"
 
