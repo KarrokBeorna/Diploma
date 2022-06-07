@@ -1,0 +1,57 @@
+//-------------------------------------------------------------------------
+                Section CommonParameters
+//-------------------------------------------------------------------------
+Description="TargetTrackingScenario"
+
+bool_EnableServer=1
+int_Port=8080
+int_MaxSizeDataPacketInBytes=1344
+
+ 
+//-------------------------------------------------------------------------
+                Section ScenarioGlobalParams
+//-------------------------------------------------------------------------
+N_Channels=2800
+N_TimeFrames=277
+N_FrameSize=1024
+bool_EnablePhaseDistortions=1
+bool_EnablePhaseCorrection=0
+bool_EnableRealtimePlayback=1
+
+int_PulseRepetitionRateInHertz=1000
+float_NoisePower=0.1
+float_ChannelWidthInMeters=0.33
+float_SoundVelocityInMetersPerSecond=750.0
+float_SoundAmplitudeAttenuationCoef=0.035
+NoiseSamplesFileName="DataFiles\WhiteNoise_1E6samples.txt"
+
+//-------------------------------------------------------------------------
+                Section OutputFiles
+//-------------------------------------------------------------------------
+
+2DTableOfScores_FileName="OutFiles/OutTableOfScores0.txt"
+OutGUI_FileName="OutFiles/GUIMap0.txt"
+
+
+ 
+//-------------------------------------------------------------------------
+                Section TargetParams[0]
+//-------------------------------------------------------------------------
+int_TargetClass=0
+float_InitPosX=630
+float_InitPosY=2.0
+float_InitVelocityX=2.58
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_0.txt"
+ 
+ 
+//-------------------------------------------------------------------------
+                Section TargetParams[1]
+//-------------------------------------------------------------------------
+int_TargetClass=1
+float_InitPosX=1524
+float_InitPosY=2.0
+float_InitVelocityX=-3.3
+float_InitTargetSignalPower=1.0
+SignalSignatureFileName="DataFiles\TargetSignals\2 DVS, WV5\SignatureWV_0.txt"
+ 
