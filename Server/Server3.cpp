@@ -32,16 +32,16 @@ CServer3::CServer3(const unsigned int N_Channels, const unsigned int N_Frames, c
 	Ready = false;
     this->N_Frames = N_Frames;
     this->N_Channels = N_Channels;
-    Status = 0;
-    Mode = 0;
-    pDataToSend = NULL;
+    PublicParams.Status = 0;
+    PublicParams.Mode = 0;
+    PublicParams.CurrProcessedFrameID = 0;
+    PublicParams.N_TotalElementsToSend = 0;
+    PublicParams.pDataToSend = NULL;
     ErrorCode = CSimpleSocket::CSocketError::SocketSuccess;
     FrameID = 0;
-    CurrProcessedFrameID = 0;
     this->SendPacketSize = SendPacketSize;
     this->RecievePacketSize = RecievePacketSize;
     this->iPort = Port;
-    N_TotalElementsToSend = 0;
 
 	SendDataPacketBuffer = (uint8*)calloc(SendPacketSize, sizeof(char));
 
@@ -102,63 +102,90 @@ void CServer3::RunPortListening()
         }
 
         uint8* RecieveDataPacketBuffer = pClientSocket->GetData();
+        if (RecieveDataPacketBuffer == NULL)
+        {
+            if (PublicParams.Status != 0)
+            {
+                PublicParams.Status = 0;
+                printf("\nServer stops processing");
+            }
+            break;
+        }
         uint8 Msg; 
         
         memcpy(&Msg, &RecieveDataPacketBuffer[0], sizeof(uint8));
-
-        if (Msg == PAKOSAM_CLIENT_REQUEST_METADATA) SendMetadata();
-
-        if (Msg == PAKOSAM_CLIENT_DISCONNECT) break; // TODO: In future: it is not necessary to shut down the server when the client disconnects
-
-        if (Msg == PAKOSAM_CLIENT_REQUEST_DATA_FRAME)
+        switch (Msg)
         {
-            if (Status == 0) continue; // TODO: instead the server must send a message that the data frame is not available
+        case PAKOSAM_CLIENT_REQUEST_METADATA:
+            SendMetadata();
+            break;
+
+        case PAKOSAM_CLIENT_DISCONNECT:
+            b = false; // TODO: In future: it is not necessary to shut down the server when the client disconnects
+            break;
+
+        case PAKOSAM_CLIENT_REQUEST_DATA_FRAME:
+        {
+            if (PublicParams.Status == 0) continue; // TODO: instead the server must send a message that the data frame is not available
             unsigned int Parameter;
             memcpy(&Parameter, &RecieveDataPacketBuffer[1], sizeof(unsigned int));
-            if (Parameter > 0) Mode = Parameter;
-            while (pDataToSend == NULL)
+            if (Parameter > 0) PublicParams.Mode = Parameter;
+
+            // while & sleep
+            /*
+            while (PublicParams.pDataToSend == NULL)
             {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             }
-            
-            bool bb = SendCurrDataFrame(N_TotalElementsToSend, pDataToSend);
+            */
+
+            bool bb = SendCurrDataFrame();
 
             if (!bb)
             {
-                Status = 0; // Stops computations
+                PublicParams.Status = 0; // Stops computations
                 SendMessageToConnected(PAKOSAM_SERVER_PROCESSING_STOPPED);
             }
             else IncFrame();
         }
+        break;
 
-        if (Msg == PAKOSAM_CLIENT_REQUEST_SERVER_STATUS) SendStatus();
 
-        if (Msg == PAKOSAM_CLIENT_RUN_SERVER_ONLINE)
+        case PAKOSAM_CLIENT_REQUEST_SERVER_STATUS:
+            SendStatus();
+            break;
+
+        case PAKOSAM_CLIENT_RUN_SERVER_ONLINE:
         {
-            if (Status == 0)
+            if (PublicParams.Status == 0)
             {
-                Mode = 1;
-                Status = 1;
+                PublicParams.Status = 1;
                 SendMessageToConnected(PAKOSAM_SERVER_STARTS_PROCESSING);
                 printf("\nServer starts processing");
             }
         }
-        if (Msg == PAKOSAM_CLIENT_RUN_SERVER_OFFLINE)
+        break;
+
+        case PAKOSAM_CLIENT_RUN_SERVER_OFFLINE:
         {
-            if (Status == 0)
+            if (PublicParams.Status == 0)
             {
-                Status = 2;
+                PublicParams.Status = 2;
                 SendMessageToConnected(PAKOSAM_SERVER_STARTS_PROCESSING);
                 printf("\nServer starts processing");
             }
         }
-        if (Msg == PAKOSAM_CLIENT_STOP_PROCESSING)
+        break;
+
+        case PAKOSAM_CLIENT_STOP_PROCESSING:
         {
-            if (Status != 0)
+            if (PublicParams.Status != 0)
             {
-                Status = 0;
+                PublicParams.Status = 0;
                 printf("\nServer stops processing");
             }
+        }
+        break;
         }
     }
     ShutdownConnections();
@@ -193,12 +220,12 @@ void CServer3::PrepareDataPacketForSending(float * DataArray, const unsigned int
 {
     const uint8 Msg = PAKOSAM_SERVER_SENDING_DATA_FRAME;
     memcpy(&SendDataPacketBuffer[0], &Msg, sizeof(uint8)); // 0 + 1 = 1
-    memcpy(&SendDataPacketBuffer[1], &Mode, sizeof(uint8)); // 1 + 1 = 2
+    memcpy(&SendDataPacketBuffer[1], &PublicParams.Mode, sizeof(uint8)); // 1 + 1 = 2
     memcpy(&SendDataPacketBuffer[2], &FrameID, sizeof(unsigned int)); // 2 + 4 = 6
     memcpy(&SendDataPacketBuffer[6], &StartElement, sizeof(unsigned int)); // 6 + 4 = 10
     memcpy(&SendDataPacketBuffer[10], &N_ElementsToSend, sizeof(unsigned short)); // 10 + 2 = 12
     // header length = _HEADER_SIZE_IN_BYTES
-    
+
     const unsigned int N_bytes = sizeof(float);
     float* DataArray1 = &DataArray[StartElement];
     for (unsigned int i = 0; i < N_ElementsToSend; i++) memcpy(&SendDataPacketBuffer[_HEADER_SIZE_IN_BYTES + i * N_bytes], &DataArray1[i], N_bytes);
@@ -246,7 +273,7 @@ void CServer3::ShutdownConnections()
 // Sends one data frame
 // N_TotalElements = N_Channels;
 // VectorToSend = pDataToSend->GetColumn(FrameID)->GetInternalData();
-bool CServer3::SendCurrDataFrame(const unsigned int N_TotalElements, float * VectorToSend)
+bool CServer3::SendCurrDataFrame()
 {
     if(FrameID >= N_Frames) // Sending a message about stop sending the data
     {
@@ -258,22 +285,25 @@ bool CServer3::SendCurrDataFrame(const unsigned int N_TotalElements, float * Vec
     }
 
     // Delay is necessary: the server waits for the data processing
-    while (CurrProcessedFrameID == FrameID)
+     // wait mutex
+    std::unique_lock<std::mutex> lck(PublicParams.mtx_FrameID);
+    while (PublicParams.CurrProcessedFrameID == FrameID)
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        PublicParams.cv_FrameID.wait(lck);
     }
-
+ 
     /*
-    if (VectorToSend == NULL)
+    // while & sleep
+    while (PublicParams.CurrProcessedFrameID == FrameID)
     {
-        printf("\nError. Data array to send is not assigned. CServer3::SendCurrDataFrame");
-        ErrorCode = 55;
-        return false;
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
     */
 
 #ifdef _ENABLE_DEBUGINFO
-    printf("\n__________Sending Frame %ld___________", FrameID);
+    printf("\n__________Sending Frame %d___________", FrameID);
+    printf(" processed: %d", PublicParams.CurrProcessedFrameID);
 #endif
     const unsigned int N_chars = sizeof(float);
     unsigned short int N_ElementsToSend = (SendPacketSize - _HEADER_SIZE_IN_BYTES) / N_chars; // _HEADER_SIZE_IN_BYTES s for the packet's header
@@ -282,13 +312,13 @@ bool CServer3::SendCurrDataFrame(const unsigned int N_TotalElements, float * Vec
     bool b = true;
     while (b)
     {
-        if (CurrStartChannel + N_ElementsToSend >= N_TotalElements)
+        if (CurrStartChannel + N_ElementsToSend >= PublicParams.N_TotalElementsToSend)
         {
-            N_ElementsToSend = N_TotalElements - CurrStartChannel; // TODO: Send error message to the client 
+            N_ElementsToSend = PublicParams.N_TotalElementsToSend - CurrStartChannel; // TODO: Send error message to the client 
             b = false;
         }
-        PrepareDataPacketForSending(VectorToSend, FrameID, CurrStartChannel, N_ElementsToSend);
-        
+        PrepareDataPacketForSending(PublicParams.pDataToSend, FrameID, CurrStartChannel, N_ElementsToSend);
+
         if (!pClientSocket->Send(SendDataPacketBuffer, SendPacketSize))
         {
             ErrorCode = pClientSocket->GetSocketError();
@@ -350,7 +380,7 @@ void CServer3::SendStatus()
     const unsigned short Msg = PAKOSAM_SERVER_SENDING_STATUS;
     memcpy(&SendDataPacketBuffer[0], &Msg, sizeof(uint8));
 
-    memcpy(&SendDataPacketBuffer[1], &Status, sizeof(uint8));
+    memcpy(&SendDataPacketBuffer[1], &PublicParams.Status, sizeof(uint8));
     // header size is 2 bytes: 1 + 1
 
     if (!pClientSocket->Send(SendDataPacketBuffer, 4))
