@@ -8,6 +8,8 @@
 #ifndef SERVER3_SIGNALEMULATOR_H_
 #define SERVER3_SIGNALEMULATOR_H_
 
+#include <mutex>              // std::mutex, std::unique_lock
+#include <condition_variable> // std::condition_variable
 
 #include "PassiveSocket.h"
 #include "VectorMatrix/LargeDataMatrix.h"
@@ -31,18 +33,29 @@ private:
 
 	void PrepareDataPacketForSending(float* DataArray, const unsigned int FrameID, const unsigned int StartElement, const unsigned short N_ElementsToSend); // Fetch one data packet from the array to send, transorm them to binary format and and fill the send buffer
 	void ShutdownConnections(); // Shuts down all sockets
-	bool SendCurrDataFrame(const unsigned int N_TotalElements, float* VectorToSend); // Sends current data frame
+	bool SendCurrDataFrame(); // Sends current data frame
 	void IncFrame(); // Go to the next frame
 	void SendMetadata(); // Sends metadata to the client
 	void SendStatus(); // Sends server status to the client
 	bool SendMessageToConnected(const unsigned char Msg); // Sends a message to connected abonents
 
 public:
-	uint8 Status; // Server status: 0 - no computations, 1 - computations running online, 2 - computations running offline
-	uint8 Mode; // Mode of info to send. 1 = Energy of spatial channels. 2 = Table of tracked targets
-	unsigned int CurrProcessedFrameID; // ID of the currently processed frame
-	unsigned int N_TotalElementsToSend; // Number of elements to send in the current frame
-	float* pDataToSend; // External <float> array to send 
+	struct SServerFlags
+	{
+		std::mutex mtx_FrameID;
+		std::condition_variable cv_FrameID;
+		uint8 Status; // Server status: 0 - no computations, 1 - computations running online, 2 - computations running offline
+		uint8 Mode; // Mode of info to send. 1 = Energy of spatial channels. 2 = Table of tracked targets
+		unsigned int CurrProcessedFrameID; // ID of the currently processed frame
+		unsigned int N_TotalElementsToSend; // Number of elements to send in the current frame
+		float* pDataToSend; // External <float> array to send 
+	} PublicParams;
+
+//	uint8 Status; // Server status: 0 - no computations, 1 - computations running online, 2 - computations running offline
+//	uint8 Mode; // Mode of info to send. 1 = Energy of spatial channels. 2 = Table of tracked targets
+//	unsigned int CurrProcessedFrameID; // ID of the currently processed frame
+//	unsigned int N_TotalElementsToSend; // Number of elements to send in the current frame
+//	float* pDataToSend; // External <float> array to send 
 
 	CServer3(const unsigned int N_Channels, const unsigned int N_Frames, const unsigned int SendPacketSize, const unsigned int RecievePacketSize, const unsigned long Port); // Constructor
 	virtual ~CServer3(); // Destructor
@@ -55,10 +68,3 @@ public:
 
 
 #endif /*SERVER2_SIGNALEMULATOR_H_*/
-
-
-
-
-
-
-
