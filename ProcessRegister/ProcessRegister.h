@@ -14,6 +14,8 @@
 #include "../SignalBuffer/SignalBuffer.h"
 #include "../PhaseProcessing/PhaseProc.h"
 #include "../Server/Server3.h"
+#include "Stopwatch.h"
+// #include "../Stopwatch1.h"
 
 
 // The class represents a register of targets. It performs main operations regarding to filling the signal buffer with target signals
@@ -23,6 +25,7 @@ class CProcessRegister
 private:
 	bool Ready;	// Flag of readiness
 	bool IsTargetsExternal; //Flag: whether the targets are external (true) or internal (false)
+	bool IsRealtimePlayback; // Flag: true if real-time playback of the data generation is required, false if the processing should be completed as soon as possible
 	unsigned long N_Channels;				// Number of channels
 	unsigned long N_TimeFrames;				// Number of time frames
 	unsigned int FrameSize;					// Frame size = cell size (2^n)
@@ -42,8 +45,9 @@ private:
 	CLargeDataMatrix<float>* TableOfVisibleTargets; // Table of currently visible targets
 	CPhaseProc* PhaseProc; // Phase processing operations
 	CServer3* Serv; // TCP server
-	float* DataVector;
-	
+	float* DataVector; // Data vector for sending data to the client
+	Stopwatch PlaybackTimer; // Timer for measuring controlled time delay for real-time playback
+
 	void Init(); // Initializes internal structures
 	float ComputeDistanceInMeters(CSignalSource * Target, const unsigned long ChannelID); // Computes the distance in meters from the target the the channel
 	unsigned int ComputeDelayInPoints(float DistanceInMeters); // Computes temporal delay in points in respect to the distance in meters
@@ -51,6 +55,7 @@ private:
 	void StartComputations(); // Starts a separate process for computations
 	void StartServer(); // Starts a separate process for data transfer
 	bool Init_ScenarioGlobalParams(CConfigFileReader* pConfig, const char* SectionName); // Initializes constant parameters from the config file
+	void InsertPlaybackDelay(); // Delays computations for real-time playback
 
 public:
 	CProcessRegister(CConfigFileReader* Config); // Constructor 1, config = "TargetTrackingScenario"
